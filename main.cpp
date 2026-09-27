@@ -116,7 +116,13 @@ bool extractIPv4(const string& str, unsigned long& outAddress, int& outPort)
             if (part.empty()) //empty octets are invalid
             {
                 valid = false; //mark the candidate invalid
-                break;
+                break; //stop checking this candidate
+            }
+
+            if (part.length() > 1 && part[0] == '0') //reject leading zeros such as 01 or 001
+            {
+                valid = false; //mark the candidate invalid
+                break; //stop checking this candidate
             }
 
             for (char c : part) //check that the octet contains only digits
@@ -174,20 +180,52 @@ bool extractIPv4(const string& str, unsigned long& outAddress, int& outPort)
 
 int main()
 {
-    string input; //store the user's input
-    unsigned long address; //store the 32-bit IPv4 value
-    int port; //store the optional port
+    string input; //store the full line entered by the user
+    unsigned long address; //store the extracted 32-bit ipv4 value
+    int port; //store the extracted port number
 
-    getline(cin, input); //read the entire line
+    while (true) //keep accepting input until the user enters end
+    {
+        cout << "Enter a string (or 'END' to quit): "; //display the input prompt
+        getline(cin, input); //read the entire line including spaces
 
-    if (extractIPv4(input, address, port)) //try to find a valid IPv4 address
-    {
-        cout << "Address: " << address << endl; //display the 32-bit value
-        cout << "Port: " << port << endl; //display the port
-    }
-    else
-    {
-        cout << "No valid IPv4 address found." << endl; //report failure
+        if (input == "END") //check whether the user wants to quit
+        {
+            cout << "Program terminated." << endl; //display termination message
+            break; //exit the loop
+        }
+
+        if (extractIPv4(input, address, port)) //try to extract a valid ipv4 address
+        {
+            unsigned long first = (address >> 24) & 255; //extract the first octet
+            unsigned long second = (address >> 16) & 255; //extract the second octet
+            unsigned long third = (address >> 8) & 255; //extract the third octet
+            unsigned long fourth = address & 255; //extract the fourth octet
+
+            cout << "Extracted IPv4 address: "; //begin the success message
+
+            cout << first << "." //print the first octet
+                 << second << "." //print the second octet
+                 << third << "." //print the third octet
+                 << fourth; //print the fourth octet
+
+            cout << " (decimal value: " << address << ", port: "; //print the decimal value
+
+            if (port == -1) //check whether a port was included
+            {
+                cout << "none"; //display none when there was no port
+            }
+            else
+            {
+                cout << port; //display the extracted port
+            }
+
+            cout << ")" << endl; //finish the success message
+        }
+        else
+        {
+            cout << "Invalid input: no valid IPv4 address found" << endl; //display failure message
+        }
     }
 
     return 0; //end the program
