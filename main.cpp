@@ -39,6 +39,13 @@ bool extractIPv4(const string& str, unsigned long& outAddress, int& outPort)
 
         string token = str.substr(start, i - start); //extract the whole candidate
 
+        if (token.empty() ||
+            token.front() == '.' || token.front() == ':' ||
+            token.back() == '.' || token.back() == ':') //reject incomplete candidate tokens
+        {
+            continue; //reject this entire candidate
+        }
+
         string addressPart = token; //assume the entire token is the address
         string portPart; //store the optional port
         int port = -1; //-1 means that no port was provided
